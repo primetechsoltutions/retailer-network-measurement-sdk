@@ -31,6 +31,10 @@ android {
 
     }
 
+    publishing {
+        singleVariant("release")
+        singleVariant("debug")
+    }
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -40,11 +44,7 @@ android {
             )
         }
         debug {
-            isMinifyEnabled = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            isMinifyEnabled = false
         }
     }
     compileOptions {
