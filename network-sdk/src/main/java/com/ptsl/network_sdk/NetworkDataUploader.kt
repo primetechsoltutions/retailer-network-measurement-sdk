@@ -38,6 +38,8 @@ class NetworkDataUploader @Inject constructor(
         integratedAppVersion: String,
         sdkInitiateTimeStamp: String,
         integratedAppEventName: String,
+        userLatitude: Double = 0.0,
+        userLongitude: Double = 0.0,
         callback: (Boolean) -> Unit
     ) {
         if (this::checkPermissionHandler.isInitialized) {
@@ -55,6 +57,8 @@ class NetworkDataUploader @Inject constructor(
                         isSdkInitialized = this@NetworkDataUploader::checkPermissionHandler.isInitialized,
                         isLocationEnabled = isLocationEnabled,
                         isPhoneStateEnabled = isPhoneStateEnabled,
+                        userLatitude = userLatitude,
+                        userLongitude = userLongitude
                     )
                     databaseDao.insertAuthData(auth)
                     enqueueNetworkDataWork()

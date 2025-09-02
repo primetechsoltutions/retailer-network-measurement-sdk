@@ -23,4 +23,6 @@ data class AuthEntity(
     @SerializedName("isSdkInitialized") var isSdkInitialized: Boolean = false,
     @SerializedName("isLocationEnabled") var isLocationEnabled: Boolean = false,
     @SerializedName("isPhoneStateEnabled") var isPhoneStateEnabled: Boolean = false,
+    @SerializedName("userLatitude") var userLatitude: Double = 0.0,
+    @SerializedName("userLongitude") var userLongitude: Double = 0.0
 ) : Parcelable
