@@ -13,7 +13,7 @@ import retrofit2.http.Query
 
 interface ApiService {
 
-    @POST("v901/RetailerNetworkMesurment/save-retailer-network-event-sdk-data")
+    @POST("v902/RetailerNetworkMesurment/save-retailer-network-event-sdk-data")
     suspend fun postNetworkData(@Body request: NetworkDataRequest): BaseResponse<Any>
 
     @POST("v901/RetailerNetworkMesurment/sdk-logs")

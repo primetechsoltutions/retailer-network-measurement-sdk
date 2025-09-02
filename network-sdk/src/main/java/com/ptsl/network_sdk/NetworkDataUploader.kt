@@ -40,29 +40,39 @@ class NetworkDataUploader @Inject constructor(
         integratedAppEventName: String,
         callback: (Boolean) -> Unit
     ) {
-        if (this::checkPermissionHandler.isInitialized && checkPermissionHandler.isPermissionGranted()) {
+        if (this::checkPermissionHandler.isInitialized) {
             Log.d("userID", "--------> \n $userId \n <----------")
-            coroutineScope.launch {
-                val auth = AuthEntity(userId = userId,
-                    integratedAppVersion = integratedAppVersion,
-                    sdkInitiateTimeStamp = sdkInitiateTimeStamp,
-                    integratedAppEventName = integratedAppEventName,
-                    sdkVersion = BuildConfig.SdkVersion)
-                databaseDao.insertAuthData(auth)
-                enqueueNetworkDataWork()
-                callback(true)
+            checkPermissionHandler.requestPermission{
+                coroutineScope.launch {
+                    val isLocationEnabled = checkPermissionHandler.isLocationPermissionGranted()
+                    val isPhoneStateEnabled = checkPermissionHandler.isPhoneStatePermissionGranted()
+
+                    val auth = AuthEntity(userId = userId,
+                        integratedAppVersion = integratedAppVersion,
+                        sdkInitiateTimeStamp = sdkInitiateTimeStamp,
+                        integratedAppEventName = integratedAppEventName,
+                        sdkVersion = BuildConfig.SdkVersion,
+                        isSdkInitialized = this@NetworkDataUploader::checkPermissionHandler.isInitialized,
+                        isLocationEnabled = isLocationEnabled,
+                        isPhoneStateEnabled = isPhoneStateEnabled,
+                    )
+                    databaseDao.insertAuthData(auth)
+                    enqueueNetworkDataWork()
+                    callback(true)
+                }
             }
+
         } else {
             callback(false)
         }
     }
 
-    fun requestPermission(callback: (Boolean) -> Unit) {
-        if (checkPermissionHandler.isPermissionGranted())
-            callback(true)
-        else
-            checkPermissionHandler.requestPermission(callback = callback)
-    }
+//    fun requestPermission(callback: (Boolean) -> Unit) {
+//        if (checkPermissionHandler.isPermissionGranted())
+//            callback(true)
+//        else
+//            checkPermissionHandler.requestPermission(callback = callback)
+//    }
 
 
     private fun enqueueNetworkDataWork() {

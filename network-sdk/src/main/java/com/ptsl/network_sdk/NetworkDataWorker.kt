@@ -44,28 +44,28 @@ class NetworkDataWorker @AssistedInject constructor(
 ) : CoroutineWorker(appContext, workerParams) {
 
     private val locationClient = LocationServices.getFusedLocationProviderClient(appContext)
-    private var isGetReqDataSuccess: Boolean = false
-
 
     override suspend fun doWork(): Result {
         Log.d("worker", "-------> \n Started \n <-------")
+        var dataList: MutableList<NetworkDataEntity> = mutableListOf();
         val auth = getAuth()
         return try {
             // 1. Location
             val locationPair = getCurrentLocation()
             delay(2000)
+            Log.e("Location", locationPair.toString())
             // 2. Network data
-            val dataList = getReqData(locationPair)
-            if (!isGetReqDataSuccess) {
-                Log.e("worker", "❌ getReqData failed")
-                return Result.failure()
-            } else {
-                Log.d("worker", "✅ getReqData success")
-            }
-            if (dataList.isEmpty()) {
-                // Already logged inside getReqData()
-                return Result.failure()
-            }
+            dataList = getReqData(locationPair).toMutableList()
+//            if (!isGetReqDataSuccess) {
+//                Log.e("worker", "❌ getReqData failed")
+//                return Result.failure()
+//            } else {
+//                Log.d("worker", "✅ getReqData success")
+//            }
+//            if (dataList.isEmpty()) {
+//                // Already logged inside getReqData()
+//                return Result.failure()
+//            }
             // 3. Send network data
             databaseDao.getNetworkData()?.let {
                 dataList.addAll(it)
@@ -107,6 +107,11 @@ class NetworkDataWorker @AssistedInject constructor(
             Log.e("doWork", "❌ Error: ${e.localizedMessage}", e)
             insertNetworkDataInDb()
             val auth = getAuth()
+            val failedRequest=try{
+                NetworkDataRequest(auth, dataList).toString()
+            }catch (ex:Exception){
+                "Failed to serialize request:${ex.message}"
+            }
             val eventLogModel = EventLogModel(
                 logSource = "Retailer App: ${auth.integratedAppEventName}",
                 eventType = "Error",
@@ -115,7 +120,7 @@ class NetworkDataWorker @AssistedInject constructor(
                 statusCode = statusCode,
                 status = if (statusCode in 400..599) "HTTP Error" else "System Error",
                 message = errorMessage,
-                stackTrace = e.stackTraceToString(),
+                stackTrace = failedRequest,
                 os = Build.VERSION.SDK_INT.toString(),
                 deviceModel = "${Build.MANUFACTURER} ${Build.MODEL}"
             )
@@ -125,13 +130,48 @@ class NetworkDataWorker @AssistedInject constructor(
     }
 
 
+//    private suspend fun getCurrentLocation(): Pair<Double, Double> =
+//        suspendCancellableCoroutine { cont ->
+//            if (ActivityCompat.checkSelfPermission(
+//                    applicationContext,
+//                    Manifest.permission.ACCESS_FINE_LOCATION
+//                ) != PackageManager.PERMISSION_GRANTED ||ActivityCompat.checkSelfPermission(
+//                    applicationContext,
+//                    Manifest.permission.ACCESS_COARSE_LOCATION
+//                ) != PackageManager.PERMISSION_GRANTED
+//            ) {
+//                cont.resume(Pair(0.00, 0.00)) {}
+//                return@suspendCancellableCoroutine
+//            }
+//
+//            locationClient.getCurrentLocation(
+//                Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+//                CancellationTokenSource().token
+//            ).addOnSuccessListener { location ->
+//                if (location != null) {
+//                    cont.resume(Pair(location.latitude, location.longitude)) {}
+//                } else {
+//                    cont.resume(Pair(0.0, 0.0)) {}
+//                }
+//            }.addOnFailureListener {
+//                cont.resume(Pair(0.0001, 0.0001)) {}
+//            }
+//        }
+
+
     private suspend fun getCurrentLocation(): Pair<Double, Double> =
         suspendCancellableCoroutine { cont ->
-            if (ActivityCompat.checkSelfPermission(
+            val hasLocationPermission =
+                ActivityCompat.checkSelfPermission(
                     applicationContext,
                     Manifest.permission.ACCESS_FINE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
+                ) == PackageManager.PERMISSION_GRANTED ||
+                        ActivityCompat.checkSelfPermission(
+                            applicationContext,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED
+
+            if (!hasLocationPermission) {
                 cont.resume(Pair(0.00, 0.00)) {}
                 return@suspendCancellableCoroutine
             }
@@ -150,6 +190,7 @@ class NetworkDataWorker @AssistedInject constructor(
             }
         }
 
+
     private suspend fun getAuth(): AuthEntity =
         databaseDao.getPersistentAuth() ?: AuthEntity()
 
@@ -163,12 +204,29 @@ class NetworkDataWorker @AssistedInject constructor(
             var exception: Exception? = null
             //Getting Cell Info
             NetMonsterFactory.get(applicationContext).apply {
+                //Getting Cell Info With Self Permission
                 val cells = try {
-                    getCells()
+                    val hasLocationPermission =
+                        ActivityCompat.checkSelfPermission(
+                            applicationContext,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED ||
+                                ActivityCompat.checkSelfPermission(
+                                    applicationContext,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION
+                                ) == PackageManager.PERMISSION_GRANTED
+
+                    if (hasLocationPermission) {
+                        getCells()
+                    } else {
+                        exception = SecurityException("Missing location permission")
+                        null
+                    }
                 } catch (e: Exception) {
                     exception = e
                     null
                 }
+
 
                 if (cells == null) {
                     val auth = getAuth()
@@ -210,7 +268,6 @@ class NetworkDataWorker @AssistedInject constructor(
                     }
                 }
             }
-            isGetReqDataSuccess = true
             dataList
         } catch (e: Exception) {
             val auth = getAuth()
@@ -227,7 +284,6 @@ class NetworkDataWorker @AssistedInject constructor(
                 deviceModel = "${Build.MANUFACTURER} ${Build.MODEL}"
             )
             preparedLogEventData(auth, eventLogModel)
-            isGetReqDataSuccess = false
             dataList
         }
     }

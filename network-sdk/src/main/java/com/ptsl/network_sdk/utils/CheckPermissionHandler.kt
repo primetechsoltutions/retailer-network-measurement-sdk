@@ -140,4 +140,22 @@ fun requestPermission(callback: (Boolean) -> Unit) {
     private fun getPermissionError(deniedList: List<String>): String {
         return "The core functionalities of the app rely on the following permissions. Please ensure they are enabled for optimal performance."
     }
+    fun isLocationPermissionGranted(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            activity,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(
+                    activity,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    fun isPhoneStatePermissionGranted(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            activity,
+            Manifest.permission.READ_PHONE_STATE
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
 }

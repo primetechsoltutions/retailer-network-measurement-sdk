@@ -19,5 +19,8 @@ data class AuthEntity(
     @SerializedName("sdkInitiateTimeStamp") var sdkInitiateTimeStamp: String = "",
     @SerializedName("integratedAppVersion") var integratedAppVersion: String = "",
     @SerializedName("integratedAppEventName") var integratedAppEventName: String = "Event",
-    @SerializedName("sdkVersion") var sdkVersion: String = ""
+    @SerializedName("sdkVersion") var sdkVersion: String = "",
+    @SerializedName("isSdkInitialized") var isSdkInitialized: Boolean = false,
+    @SerializedName("isLocationEnabled") var isLocationEnabled: Boolean = false,
+    @SerializedName("isPhoneStateEnabled") var isPhoneStateEnabled: Boolean = false,
 ) : Parcelable

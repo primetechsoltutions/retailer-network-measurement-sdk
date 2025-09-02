@@ -106,14 +106,14 @@ afterEvaluate {
                 from(components["release"])
                 groupId = "com.github.primetechsoltutions"
                 artifactId = "retailerapp-network-measurement-sdk"
-                version = "2.0.1"
+                version = "2.0.0"
             }
 
             create<MavenPublication>("debug") {
                 from(components["debug"])
                 groupId = "com.github.primetechsoltutions"
                 artifactId = "retailerapp-network-measurement-sdk-debug"
-                version = "2.0.1"
+                version = "2.0.0"
             }
         }
     }
