@@ -8,7 +8,7 @@ import com.ptsl.network_sdk.data_model.entity.WorkEntity
 import com.ptsl.network_sdk.data_model.logger.EventLogModel
 
 
-@Database(entities = [WorkEntity::class, NetworkDataEntity::class, AuthEntity::class, EventLogModel::class], version = 4, exportSchema = false)
+@Database(entities = [WorkEntity::class, NetworkDataEntity::class, AuthEntity::class, EventLogModel::class], version = 5, exportSchema = false)
 abstract class NetworkDatabase: RoomDatabase(){
     abstract fun networkDao(): NetworkDao
 }

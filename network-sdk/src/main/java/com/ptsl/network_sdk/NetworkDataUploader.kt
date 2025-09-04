@@ -71,14 +71,6 @@ class NetworkDataUploader @Inject constructor(
         }
     }
 
-//    fun requestPermission(callback: (Boolean) -> Unit) {
-//        if (checkPermissionHandler.isPermissionGranted())
-//            callback(true)
-//        else
-//            checkPermissionHandler.requestPermission(callback = callback)
-//    }
-
-
     private fun enqueueNetworkDataWork() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)

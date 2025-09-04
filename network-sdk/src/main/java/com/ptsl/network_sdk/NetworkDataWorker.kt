@@ -52,20 +52,9 @@ class NetworkDataWorker @AssistedInject constructor(
         return try {
             // 1. Location
             val locationPair = getCurrentLocation()
-            delay(2000)
             Log.e("Location", locationPair.toString())
             // 2. Network data
             dataList = getReqData(locationPair).toMutableList()
-//            if (!isGetReqDataSuccess) {
-//                Log.e("worker", "❌ getReqData failed")
-//                return Result.failure()
-//            } else {
-//                Log.d("worker", "✅ getReqData success")
-//            }
-//            if (dataList.isEmpty()) {
-//                // Already logged inside getReqData()
-//                return Result.failure()
-//            }
             // 3. Send network data
             databaseDao.getNetworkData()?.let {
                 dataList.addAll(it)
@@ -128,36 +117,6 @@ class NetworkDataWorker @AssistedInject constructor(
             Result.failure()
         }
     }
-
-
-//    private suspend fun getCurrentLocation(): Pair<Double, Double> =
-//        suspendCancellableCoroutine { cont ->
-//            if (ActivityCompat.checkSelfPermission(
-//                    applicationContext,
-//                    Manifest.permission.ACCESS_FINE_LOCATION
-//                ) != PackageManager.PERMISSION_GRANTED ||ActivityCompat.checkSelfPermission(
-//                    applicationContext,
-//                    Manifest.permission.ACCESS_COARSE_LOCATION
-//                ) != PackageManager.PERMISSION_GRANTED
-//            ) {
-//                cont.resume(Pair(0.00, 0.00)) {}
-//                return@suspendCancellableCoroutine
-//            }
-//
-//            locationClient.getCurrentLocation(
-//                Priority.PRIORITY_BALANCED_POWER_ACCURACY,
-//                CancellationTokenSource().token
-//            ).addOnSuccessListener { location ->
-//                if (location != null) {
-//                    cont.resume(Pair(location.latitude, location.longitude)) {}
-//                } else {
-//                    cont.resume(Pair(0.0, 0.0)) {}
-//                }
-//            }.addOnFailureListener {
-//                cont.resume(Pair(0.0001, 0.0001)) {}
-//            }
-//        }
-
 
     private suspend fun getCurrentLocation(): Pair<Double, Double> =
         suspendCancellableCoroutine { cont ->
